@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace WaveformView
 {
+    // Interface class to facilitate displaying information
     public class Chunk
     {
     }

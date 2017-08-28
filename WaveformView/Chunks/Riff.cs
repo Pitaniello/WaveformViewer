@@ -19,6 +19,7 @@ namespace WaveformView
         // Contains the letters "WAVE" (0x57415645 big-endian form).
         readonly Char[] m_format = { 'W', 'A', 'V', 'E' };
 
+
         public Riff( Int32 chunkSize )
         {
             m_chunkSize = chunkSize;
@@ -32,7 +33,7 @@ namespace WaveformView
             set { }
             get { return m_chunkID; }
         }
-        
+
         [CategoryAttribute( m_chunkName )]
         [DisplayName("Chunk Size")]
         public Int32 ChunkSize
@@ -40,7 +41,7 @@ namespace WaveformView
             set { }
             get { return m_chunkSize; }
         }
-        
+
         [CategoryAttribute( m_chunkName )]
         [DisplayName("Data Format")]
         public Char [] Format
