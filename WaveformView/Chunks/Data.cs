@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace WaveformView
+namespace WaveformView.Chunks
 {
     class Data : Chunk
     {

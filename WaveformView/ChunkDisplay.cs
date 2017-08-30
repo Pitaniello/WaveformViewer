@@ -3,6 +3,7 @@ using System.Drawing;
 using System.ComponentModel;
 using System.Windows.Forms;
 using System.Globalization;
+using WaveformView.Chunks;
 
 namespace WaveformView
 {

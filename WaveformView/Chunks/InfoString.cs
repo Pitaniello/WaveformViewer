@@ -3,15 +3,17 @@ using System.ComponentModel;
 
 namespace WaveformView.Chunks
 {
-    class Cue : Chunk
+    class InfoString : Chunk
     {
-        const string m_chunkName = "Cue Cunk";
-        readonly string m_ID = "cue ";
-        readonly UInt32 m_size;
+        const string m_chunkName = "List-Info Chunk";
 
-        public Cue( UInt32 size )
+        readonly string m_ID;
+        readonly string m_value;
+
+        public InfoString( string chunkId, string value )
         {
-            m_size = size;
+            m_ID = chunkId;
+            m_value = value;
         }
 
 
@@ -24,11 +26,11 @@ namespace WaveformView.Chunks
         }
         
         [CategoryAttribute( m_chunkName )]
-        [DisplayName("Chunk Size")]
-        public UInt32 Size
+        [DisplayName("Value")]
+        public string Size
         {
             set { }
-            get { return m_size; }
+            get { return m_value; }
         }
     }
 }

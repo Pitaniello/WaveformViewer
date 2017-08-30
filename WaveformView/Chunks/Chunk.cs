@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WaveformView
+namespace WaveformView.Chunks
 {
     // Interface class to facilitate displaying information
     public class Chunk

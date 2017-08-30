@@ -4,12 +4,12 @@ using System.ComponentModel;
 
 namespace WaveformView.Chunks
 {
-    class Riff : Chunk
+    class List : Chunk
     {
-        const string m_chunkName = "Riff Chunk";
+        const string m_chunkName = "List Chunk";
 
         // Contains the letters "RIFF" in ASCII form (0x52494646 big-endian form).
-        readonly string m_chunkID = "RIFF";
+        readonly string m_chunkID = "LIST";
 
         // 36 + SubChunk2Size, or more precisely: 
         //  4 + (8 + SubChunk1Size) + (8 + SubChunk2Size) This is the size of the rest of the chunk 
@@ -18,13 +18,14 @@ namespace WaveformView.Chunks
         readonly UInt32 m_chunkSize;
 
         // Contains the letters "WAVE" (0x57415645 big-endian form).
-        readonly string m_format;
+        readonly string m_type;
 
-        public Riff( UInt32 chunkSize, string format )
+        public List( UInt32 chunkSize, string type )
         {
             m_chunkSize = chunkSize;
-            m_format = format;
+            m_type = type;
         }
+
 
         [CategoryAttribute( m_chunkName )]
         [DisplayName("Chunk ID")]
@@ -44,10 +45,10 @@ namespace WaveformView.Chunks
 
         [CategoryAttribute( m_chunkName )]
         [DisplayName("Data Format")]
-        public string Format
+        public string Type
         {
             set { }
-            get { return m_format; }
+            get { return m_type; }
         }
     }
 }

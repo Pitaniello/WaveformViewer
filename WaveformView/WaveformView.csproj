@@ -58,7 +58,10 @@
     <Compile Include="Chunks\Cue.cs" />
     <Compile Include="Chunks\Data.cs" />
     <Compile Include="Chunks\Format.cs" />
+    <Compile Include="Chunks\InfoString.cs" />
+    <Compile Include="Chunks\Junk.cs" />
     <Compile Include="Chunks\Label.cs" />
+    <Compile Include="Chunks\List.cs" />
     <Compile Include="Chunks\Riff.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
