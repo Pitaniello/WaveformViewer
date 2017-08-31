@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
 using WaveformView.Chunks;
-
+using System.Text;
 
 /*
     TODO
@@ -80,144 +80,117 @@ namespace WaveformView
 
         private void ReadChunks( string in_filename, ref List<Chunk> out_knownChunks )
         {
-            using (FileStream source = new FileStream(in_filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using ( FileStream source = new FileStream( in_filename, FileMode.Open, FileAccess.Read, FileShare.Read ) )
             {
-                Byte [] mainChunkData = new Byte[4];
-                source.Read( mainChunkData, 0, 4 );
-                string mainChunkID = System.Text.Encoding.ASCII.GetString( mainChunkData, 0, 4 );
+                // For the time, only supporting "RIFF" organized files.
+                Byte [] mainChunkData = new Byte[12];
+                source.Read( mainChunkData, 0, 12 );
 
-                if ( "RIFF" == mainChunkID )
+                string mainChunkID = Encoding.ASCII.GetString( mainChunkData, 0, 4 );
+                UInt32 mainChunkSize = BitConverter.ToUInt32( mainChunkData, 4 );
+                string subChunkFormat = Encoding.ASCII.GetString( mainChunkData, 8, 4 );
+                if ( "RIFF" != mainChunkID )
                 {
-                    ReadChunk_RIFF( source, ref out_knownChunks );
-                }
-                else if ( "RIFX" == mainChunkID )
-                {
-                    ReadChunk_RIFX( source, ref out_knownChunks );
-                }
-                else
-                {
-                    Console.WriteLine("Unkown main chunk id \"" + mainChunkID + "\". Failed to read.");
+                    Console.WriteLine( "Unsupported header format \"" + mainChunkID + "\". Quitting read." );
                     return;
                 }
+
+                if ( "WAVE" != subChunkFormat )
+                {
+                    Console.WriteLine( "Unsupported data format \"" + mainChunkID + "\". Quitting read." );
+                    return;
+                }
+
+                Int32 bytesRead = 0;
+                Int32 readThisTime = 0;
+
+                Byte [] subChunkHeader = new Byte[8];
+                readThisTime = source.Read( subChunkHeader, 0, 8 );
+                bytesRead += readThisTime;
+
+                while ( (readThisTime != 0) && (bytesRead < mainChunkSize) )
+                {
+                    string chunkType = Encoding.ASCII.GetString( subChunkHeader, 0, 4 );
+                    Int32 chunkSize = BitConverter.ToInt32( subChunkHeader, 4 );
+
+                    Byte [] chunkData = new Byte[chunkSize];
+                    readThisTime = source.Read( chunkData, 0, chunkSize );
+                    bytesRead += readThisTime;
+
+                    if ( chunkSize % 2 == 1 )
+                    {
+                        Byte [] oddSize = new Byte[1];
+                        readThisTime = source.Read( oddSize, 0, 1 );
+                        bytesRead += readThisTime;
+                    }
+
+                    if ( readThisTime == 0 )
+                    {
+                        break;
+                    }
+
+                    if ( "data" == chunkType )
+                    {
+                        Data dataChunk = new Data( (UInt32)chunkSize );
+                    }
+                    else if ( "fmt " == chunkType )
+                    {
+                        UInt16 format = BitConverter.ToUInt16( chunkData,  0 );
+                        UInt16 channels = BitConverter.ToUInt16( chunkData, 2 );
+                        UInt32 rate = BitConverter.ToUInt32( chunkData, 4 );
+                        UInt32 byteRate = BitConverter.ToUInt32( chunkData, 8 );
+                        UInt16 alignment = BitConverter.ToUInt16( chunkData, 12 );
+                        UInt16 bps = BitConverter.ToUInt16( chunkData, 14 );
+
+                        Format formatChunk = new Format( ( UInt32 )( chunkSize ), format, channels, rate, byteRate, alignment, bps );
+                    }
+                    else if ( "cue " == chunkType )
+                    {
+                        Cue cueChunk = new Cue( (UInt32)chunkSize );
+                    }
+                    else if ( "JUNK" == chunkType )
+                    {
+                        Junk junkChunk = new Junk( (UInt32)chunkSize );
+                    }
+                    else if ( "LIST" == chunkType )
+                    {
+                        Int32 converted = 0;
+
+                        string listType = Encoding.ASCII.GetString( chunkData, 0, 4 );
+                        converted += 4;
+
+                        while ( converted < chunkSize )
+                        {
+                            string infoType = Encoding.ASCII.GetString( chunkData, converted, 4 );
+                            converted += 4;
+                            Int32 infoSize = BitConverter.ToInt32( chunkData, converted );
+                            converted += 4;
+
+                            if ( "adtl" == listType )
+                            {
+                                Int32 infoID = BitConverter.ToInt32( chunkData, converted );
+                                converted += 4;
+                                infoSize -= 4;
+                            }
+
+                            string infoValue = Encoding.ASCII.GetString( chunkData, converted, infoSize );
+                            converted += infoSize;
+
+                            if ( infoSize % 2 == 1 )
+                            {
+                                converted += 1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine( "Ignoring unknown chunk of type " + chunkType + Environment.NewLine );
+                    }
+
+                    readThisTime = source.Read( subChunkHeader, 0, 8 );
+                    bytesRead += readThisTime; 
+                }
             }
-        }
-
-        private void ReadChunk_RIFX(FileStream in_source, ref List<Chunk> out_knownChunks)
-        {
-            Console.WriteLine("Let's be honest; I don't know if I'm going to bother with this.");
-        }
-
-        private void ReadChunk_RIFF( FileStream in_source, ref List<Chunk> out_knownChunks )
-        {   
-            Byte [] mainChunkData = new Byte[12];
-            in_source.Read( mainChunkData, 0, 12 );
-
-            string mainChunkID = System.Text.Encoding.ASCII.GetString( mainChunkData, 0, 4 );
-            UInt32 mainChunkSize = BitConverter.ToUInt32( mainChunkData, 4 );
-            string mainChunkFormat = System.Text.Encoding.ASCII.GetString( mainChunkData, 8, 4 );
-
-            Riff riffChunk = new Riff( mainChunkSize, mainChunkFormat );
-            out_knownChunks.Add( riffChunk );
-
-            Byte [] chunkHeader = new Byte[8];
-            Int32 bytesRead = -4;
-            bytesRead += in_source.Read( chunkHeader, 0, 8 );
-
-            while ( bytesRead < mainChunkSize )
-            {
-                string chunkType = System.Text.Encoding.ASCII.GetString( chunkHeader, 0, 4 );
-                Int32 chunkSize = BitConverter.ToInt32( chunkHeader, 4 );
-
-                Byte [] chunkData = new Byte[chunkSize];
-                bytesRead += in_source.Read( chunkData, 0, chunkSize );
-
-                // case; ended on odd byte, so reading in one padding byte
-                if ( chunkSize % 2 == 1 )
-                {
-                    Byte [] oddSize = new Byte[1];
-                    bytesRead += in_source.Read( chunkData, 0, 1 );
-                }
-
-                if ( "data" == chunkType )
-                {
-                    Data dataChunk = new Data( (UInt32)chunkSize );
-                    out_knownChunks.Add( dataChunk );
-                }
-                else if ( "fmt " == chunkType )
-                {
-                    UInt16 format = BitConverter.ToUInt16( chunkData,  0 );
-                    UInt16 channels = BitConverter.ToUInt16( chunkData, 2 );
-                    UInt32 rate = BitConverter.ToUInt32( chunkData, 4 );
-                    UInt32 byteRate = BitConverter.ToUInt32( chunkData, 8 );
-                    UInt16 alignment = BitConverter.ToUInt16( chunkData, 12 );
-                    UInt16 bps = BitConverter.ToUInt16( chunkData, 14 );
-
-                    Format formatChunk = new Format( ( UInt32 )( chunkSize ), format, channels, rate, byteRate, alignment, bps );
-                    out_knownChunks.Add( formatChunk );
-                }
-                else if ( "cue " == chunkType )
-                {
-                    Cue cueChunk = new Cue( (UInt32)chunkSize );
-                    out_knownChunks.Add( cueChunk );
-                }
-                else if ( "JUNK" == chunkType )
-                {
-                    Junk junkChunk = new Junk( (UInt32)chunkSize );
-                    out_knownChunks.Add( junkChunk );
-                }
-                else if ( "LIST" == chunkType )
-                {
-                    ReadChunk_LIST( in_source, ref out_knownChunks );
-                }
-                else
-                {
-                    Console.WriteLine( "Ignoring unknown chunk of type " + chunkType + Environment.NewLine );
-                }
-
-                bytesRead += in_source.Read( chunkHeader, 0, 8 );
-            }
-        }
-
-        private void ReadChunk_LIST( FileStream in_source, ref List<Chunk> out_knownChunks )
-        {
-            Byte [] mainChunkData = new Byte[12];
-            in_source.Read( mainChunkData, 0, 12 );
-
-            string mainChunkID = System.Text.Encoding.ASCII.GetString( mainChunkData, 0, 4 );
-            UInt32 mainChunkSize = BitConverter.ToUInt32( mainChunkData, 4 );
-            string mainChunkFormat = System.Text.Encoding.ASCII.GetString( mainChunkData, 8, 4 );
-            
-            List listChunk = new List( mainChunkSize, mainChunkFormat );
-            out_knownChunks.Add( listChunk );
-
-            Byte [] chunkHeader = new Byte[8];
-            Int32 bytesRead = -4;
-            bytesRead += in_source.Read( chunkHeader, 0, 8 );
-
-            while ( bytesRead < mainChunkSize )
-            {
-                string chunkType = System.Text.Encoding.ASCII.GetString( chunkHeader, 0, 4 );
-                Int32 chunkSize = BitConverter.ToInt32( chunkHeader, 4 );
-
-                Byte [] chunkData = new Byte[chunkSize];
-                bytesRead += in_source.Read( chunkData, 0, chunkSize );
-                string chunkValue = System.Text.Encoding.ASCII.GetString( chunkData );
-
-                // case; ended on odd byte, so reading in one padding byte
-                if ( chunkSize % 2 == 1 )
-                {
-                    Byte [] oddSize = new Byte[1];
-                    bytesRead += in_source.Read( chunkData, 0, 1 );
-                }
-
-                InfoString infoChunk = new InfoString( chunkType, chunkValue );
-                out_knownChunks.Add( infoChunk );
-
-                bytesRead += in_source.Read( chunkHeader, 0, 8 );
-            }
-            
-            var cur = in_source.Position;
-            in_source.Position = cur - 8;
         }
     }
 }
