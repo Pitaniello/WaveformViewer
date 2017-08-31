@@ -8,20 +8,12 @@ using System.Text;
 
 /*
     TODO
-        overload char array display so it shows the chars, not the type
-
-        Find a way to set property grids to their natural height
-
-        Separate LIST into its own, better thing
-
-        Make a better way of tellig when I'm fucking done reading a chunk
-
-        tabs
-
-        wave view window
-
-        data window
-
+        bext chunk
+        cue chunk
+        junk
+        labl
+        unkown chunk label
+    Display - rethink
 */
 
 namespace WaveformView
@@ -142,15 +134,35 @@ namespace WaveformView
                         UInt16 alignment = BitConverter.ToUInt16( chunkData, 12 );
                         UInt16 bps = BitConverter.ToUInt16( chunkData, 14 );
 
+                        // if size > 16, extra data.
+                        // 16 is size of  extra data. format and contents defined by compression type.
                         Format formatChunk = new Format( ( UInt32 )( chunkSize ), format, channels, rate, byteRate, alignment, bps );
                     }
                     else if ( "cue " == chunkType )
                     {
+                        UInt32 cueCount = BitConverter.ToUInt32( chunkData, 0 );
+
+                        for ( UInt32 i = 0; i < cueCount; ++i )
+                        {
+                            int offset = (int)(24 * i) + 4;
+                            
+                            UInt32 cuePointID = BitConverter.ToUInt32( chunkData, offset + 0 );
+                            UInt32 playOrderPosition = BitConverter.ToUInt32( chunkData, offset + 4 );
+                            string dataChunkID = Encoding.ASCII.GetString( chunkData, offset + 8, 4 );
+                            UInt32 chunkStart = BitConverter.ToUInt32( chunkData, offset + 12 );
+                            UInt32 blockStart = BitConverter.ToUInt32( chunkData, offset + 16 );
+                            UInt32 frameOffset = BitConverter.ToUInt32( chunkData, offset + 20 );
+                        }
+
                         Cue cueChunk = new Cue( (UInt32)chunkSize );
                     }
                     else if ( "JUNK" == chunkType )
                     {
                         Junk junkChunk = new Junk( (UInt32)chunkSize );
+                    }
+                    else if ( "bext" == chunkType )
+                    {
+                                  
                     }
                     else if ( "LIST" == chunkType )
                     {
