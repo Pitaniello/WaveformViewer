@@ -1,13 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace WaveformView.Chunks
 {
-    // Interface class to facilitate displaying information
-    public class Chunk
+    [TypeConverter(typeof( ChunkConverter ) )]
+    public abstract class Chunk
     {
+        public Chunk()
+        {
+        }
+
+        [Browsable( false )]
+        public abstract string Name
+        {
+            get;
+            set;
+        }
     }
 }

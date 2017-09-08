@@ -33,15 +33,11 @@
             // 
             // displayPropertyGrid
             // 
-            this.displayPropertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.displayPropertyGrid.HelpVisible = false;
+            this.displayPropertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.displayPropertyGrid.LineColor = System.Drawing.SystemColors.ControlDark;
-            this.displayPropertyGrid.Location = new System.Drawing.Point(3, 3);
+            this.displayPropertyGrid.Location = new System.Drawing.Point(0, 0);
             this.displayPropertyGrid.Name = "displayPropertyGrid";
-            this.displayPropertyGrid.PropertySort = System.Windows.Forms.PropertySort.NoSort;
-            this.displayPropertyGrid.Size = new System.Drawing.Size(144, 144);
+            this.displayPropertyGrid.Size = new System.Drawing.Size(150, 150);
             this.displayPropertyGrid.TabIndex = 0;
             this.displayPropertyGrid.ToolbarVisible = false;
             // 
@@ -49,6 +45,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.Controls.Add(this.displayPropertyGrid);
             this.Name = "ChunkDisplay";
             this.ResumeLayout(false);

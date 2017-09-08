@@ -6,7 +6,6 @@ namespace WaveformView.Chunks
     class InfoString : Chunk
     {
         const string m_chunkName = "List-Info Chunk";
-
         readonly string m_ID;
         readonly string m_value;
 
@@ -16,9 +15,14 @@ namespace WaveformView.Chunks
             m_value = value;
         }
 
+        public override string Name
+        {
+            get { return m_chunkName; }
+            set { }
+        }
 
         [CategoryAttribute( m_chunkName )]
-        [DisplayName("ID")]
+        [DisplayName( "ID" )]
         public string ID
         {
             set { }
@@ -26,7 +30,7 @@ namespace WaveformView.Chunks
         }
         
         [CategoryAttribute( m_chunkName )]
-        [DisplayName("Value")]
+        [DisplayName( "Value" )]
         public string Size
         {
             set { }

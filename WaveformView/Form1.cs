@@ -5,16 +5,8 @@ using System.Windows.Forms;
 using System.Drawing;
 using WaveformView.Chunks;
 using System.Text;
-
-/*
-    TODO
-        bext chunk
-        cue chunk
-        junk
-        labl
-        unkown chunk label
-    Display - rethink
-*/
+using System.ComponentModel;
+using System.Collections;
 
 namespace WaveformView
 {
@@ -23,6 +15,12 @@ namespace WaveformView
         public Form1()
         {
             InitializeComponent();
+            Riff riffChunk = new Riff(100, "WAVE");
+            ChunkDisplay disp = new ChunkDisplay(riffChunk);
+            disp.Size = new Size(panel1.Width - 10, panel1.Height - 10);
+            disp.Location = new Point(5, 5);
+            disp.Anchor = (AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top);
+            panel1.Controls.Add(disp);
         }
 
         private void panel1_DragEnter(object sender, DragEventArgs e)
@@ -44,25 +42,27 @@ namespace WaveformView
         {
             try
             {
-                int xOffset = 10;
-                int yOffset = 10;
-                string [] files = ( string [] )( e.Data.GetData( DataFormats.FileDrop ) );
+                //int xOffset = 5;
+                //int yOffset = 5;
+                //string [] files = ( string [] )( e.Data.GetData( DataFormats.FileDrop ) );
 
-                Console.WriteLine(files[0]);
-                if ( files[0].Contains( ".wav"))
-                {
-                    List<Chunk> chunks = new List<Chunk>();
-                    ReadChunks(files[0], ref chunks);
+                //Console.WriteLine(files[0]);
+                //if ( files[0].Contains( ".wav"))
+                //{
+                //    panel1.Controls.Clear();
 
-                    foreach ( var chunk in chunks )
-                    {
-                        ChunkDisplay disp = new ChunkDisplay(chunk);
-                        disp.Size = new Size( panel1.Width - 20, 100 );
-                        disp.Location = new Point( xOffset, yOffset );
-                        panel1.Controls.Add(disp);
-                        yOffset += 100;
-                    }
-                }
+                //    List<Chunk> chunks = new List<Chunk>();
+                //    ReadChunks(files[0], ref chunks);
+
+                //    foreach (var chunk in chunks)
+                //    {
+                //        ChunkDisplay disp = new ChunkDisplay(chunk);
+                //        disp.Size = new Size(panel1.Width - 10, 100);
+                //        disp.Location = new Point(xOffset, yOffset);
+                //        panel1.Controls.Add(disp);
+                //        yOffset += 100;
+                //    }
+                //}
             }
             catch ( Exception ex )
             {
@@ -74,6 +74,8 @@ namespace WaveformView
         {
             using ( FileStream source = new FileStream( in_filename, FileMode.Open, FileAccess.Read, FileShare.Read ) )
             {
+                out_knownChunks = new List<Chunk>();
+
                 // For the time, only supporting "RIFF" organized files.
                 Byte [] mainChunkData = new Byte[12];
                 source.Read( mainChunkData, 0, 12 );
@@ -83,15 +85,18 @@ namespace WaveformView
                 string subChunkFormat = Encoding.ASCII.GetString( mainChunkData, 8, 4 );
                 if ( "RIFF" != mainChunkID )
                 {
-                    Console.WriteLine( "Unsupported header format \"" + mainChunkID + "\". Quitting read." );
+                    Console.WriteLine( "Unsupported header format \"" + mainChunkID + "\". Quitting." );
                     return;
                 }
 
                 if ( "WAVE" != subChunkFormat )
                 {
-                    Console.WriteLine( "Unsupported data format \"" + mainChunkID + "\". Quitting read." );
+                    Console.WriteLine( "Unsupported data format \"" + mainChunkID + "\". Quitting." );
                     return;
                 }
+
+                Riff riffChunk = new Riff( mainChunkSize, subChunkFormat );
+                out_knownChunks.Add(riffChunk);
 
                 Int32 bytesRead = 0;
                 Int32 readThisTime = 0;
@@ -124,6 +129,7 @@ namespace WaveformView
                     if ( "data" == chunkType )
                     {
                         Data dataChunk = new Data( (UInt32)chunkSize );
+                        out_knownChunks.Add(dataChunk);
                     }
                     else if ( "fmt " == chunkType )
                     {
@@ -134,13 +140,20 @@ namespace WaveformView
                         UInt16 alignment = BitConverter.ToUInt16( chunkData, 12 );
                         UInt16 bps = BitConverter.ToUInt16( chunkData, 14 );
 
-                        // if size > 16, extra data.
-                        // 16 is size of  extra data. format and contents defined by compression type.
+                        if ( 16 < chunkSize )
+                        {
+                            UInt16 extraDataSize = BitConverter.ToUInt16( chunkData, 16 );
+                        }
+
                         Format formatChunk = new Format( ( UInt32 )( chunkSize ), format, channels, rate, byteRate, alignment, bps );
+                        out_knownChunks.Add(formatChunk);
                     }
                     else if ( "cue " == chunkType )
                     {
                         UInt32 cueCount = BitConverter.ToUInt32( chunkData, 0 );
+                        
+                        Cue cueChunk = new Cue( (UInt32)chunkSize );
+                        out_knownChunks.Add(cueChunk);
 
                         for ( UInt32 i = 0; i < cueCount; ++i )
                         {
@@ -154,15 +167,35 @@ namespace WaveformView
                             UInt32 frameOffset = BitConverter.ToUInt32( chunkData, offset + 20 );
                         }
 
-                        Cue cueChunk = new Cue( (UInt32)chunkSize );
                     }
                     else if ( "JUNK" == chunkType )
                     {
                         Junk junkChunk = new Junk( (UInt32)chunkSize );
+                        out_knownChunks.Add(junkChunk);
                     }
                     else if ( "bext" == chunkType )
                     {
-                                  
+                        /*
+                            https://tech.ebu.ch/docs/tech/tech3285.pdf
+
+                            CHAR Description[256]; // get str until null
+                            CHAR Originator[32]; // get str until null
+                            CHAR OriginatorReference[32]; // get str until null
+                            CHAR OriginationDate[10]; // formatted
+                            CHAR OriginationTime[8]; // formatted
+                            DWORD TimeReferenceLow; // read 2 bytes
+                            DWORD TimeReferenceHigh; // read 2 bytes
+                            WORD Version; // read 4bytes
+                            BYTE UMID_0; // read 64 bytes
+                            BYTE UMID_63;
+                            WORD LoudnessValue; // read 2 bytes
+                            WORD LoudnessRange; // read 2 bytes
+                            WORD MaxTruePeakLevel; // read 2 bytes
+                            WORD MaxMomentaryLoudness; // read 2 bytes
+                            WORD MaxShortTermLoudness; // read 2 bytes
+                            BYTE Reserved[180]; // skip 180 char
+                            CHAR CodingHistory[]; // read until null
+                        */
                     }
                     else if ( "LIST" == chunkType )
                     {
@@ -187,6 +220,9 @@ namespace WaveformView
 
                             string infoValue = Encoding.ASCII.GetString( chunkData, converted, infoSize );
                             converted += infoSize;
+
+                            InfoString str = new InfoString(infoType, infoValue);
+                            out_knownChunks.Add(str);
 
                             if ( infoSize % 2 == 1 )
                             {

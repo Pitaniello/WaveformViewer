@@ -14,7 +14,8 @@ namespace WaveformView
             if ( chunk != null )
             {
                 InitializeComponent();
-                this.displayPropertyGrid.SelectedObject = chunk as object;
+                displayPropertyGrid.PropertySort = PropertySort.NoSort;
+                displayPropertyGrid.SelectedObject = chunk as object;
             }
             else
             {
