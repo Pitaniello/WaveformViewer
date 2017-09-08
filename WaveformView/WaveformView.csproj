@@ -55,12 +55,11 @@
     </Compile>
     <Compile Include="Chunks\BroadcastExtension.cs" />
     <Compile Include="Chunks\Chunk.cs" />
-    <Compile Include="Chunks\ChunkCollection.cs" />
-    <Compile Include="Chunks\ChunkCollectionConverter.cs" />
-    <Compile Include="Chunks\ChunkConverter.cs" />
-    <Compile Include="Chunks\ChunkPropertyDescriptor.cs" />
+    <Compile Include="Chunks\ChunkFactory.cs" />
     <Compile Include="Chunks\Cue.cs" />
+    <Compile Include="Chunks\CueData.cs" />
     <Compile Include="Chunks\Data.cs" />
+    <Compile Include="Chunks\DictionaryPropertyAdapter.cs" />
     <Compile Include="Chunks\Format.cs" />
     <Compile Include="Chunks\InfoString.cs" />
     <Compile Include="Chunks\Junk.cs" />

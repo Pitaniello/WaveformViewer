@@ -6,10 +6,11 @@ namespace WaveformView.Chunks
     class Data : Chunk
     {
         const string m_chunkName = "Data Chunk";
-        readonly string m_ID = "data";
+        const string m_ID = "data";
+
         readonly UInt32 m_size;
 
-        public Data( UInt32 size )
+        public Data( UInt32 size, Byte [] data )
         {
             m_size = size;
         }

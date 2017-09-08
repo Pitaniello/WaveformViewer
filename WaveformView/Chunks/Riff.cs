@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Text;
 using System.ComponentModel;
 
 namespace WaveformView.Chunks
@@ -8,25 +8,64 @@ namespace WaveformView.Chunks
     {
         const string m_chunkName = "Riff Chunk";
 
-        readonly string m_chunkID = "RIFF";
+        readonly string m_chunkID;
         readonly UInt32 m_chunkSize;
         readonly string m_format;
 
-
         readonly ChunkCollection m_chunkCollection = new ChunkCollection();
 
-        public Riff( UInt32 chunkSize, string format )
+        public Riff( UInt32 size, Byte [] data )
         {
-            m_chunkSize = chunkSize;
-            m_format = format;
+            Int32 pos = 0;
 
-            Data dataCHunk = new Data(500);
-            Junk blah = new Junk(30);
-            Cue foo = new Cue(1);
+            m_chunkID = Encoding.ASCII.GetString( data, pos, 4 );
+            pos += 4;
+            m_chunkSize = BitConverter.ToUInt32( data, pos );
+            pos += 4;
+            m_format = Encoding.ASCII.GetString( data, pos, 4 );
+            pos += 4;
+            
+            // For the time, only supporting "RIFF" organized files.
+            if ( "RIFF" != m_chunkID )
+            {
+                Console.WriteLine( "Unsupported header format \"" + m_chunkID + "\". Quitting." );
+                return;
+            }
 
-            m_chunkCollection.Add(dataCHunk);
-            m_chunkCollection.Add(blah);
-            m_chunkCollection.Add(foo);
+            if ( "WAVE" != m_format )
+            {
+                Console.WriteLine( "Unsupported data format \"" + m_format + "\". Quitting." );
+                return;
+            }
+
+            while ( pos < m_chunkSize )
+            {
+                string chunkType = Encoding.ASCII.GetString( data, pos, 4 );
+                pos += 4;
+                UInt32 chunkSize = BitConverter.ToUInt32( data, pos );
+                pos += 4;
+
+                if ( chunkSize % 2 == 1 )
+                {
+                    pos += 1;
+                }
+
+                if ( m_chunkSize < pos )
+                {
+                    break;
+                }
+
+                Byte[] chunkData = new Byte[chunkSize];
+                Array.Copy(data, pos, chunkData, 0, chunkSize);
+                Chunk nextChunk = ChunkFactory.CreateChunk( chunkType, chunkSize, chunkData );
+
+                if ( nextChunk != null )
+                {
+                    m_chunkCollection.Add( nextChunk );
+                }
+
+                pos += (Int32)chunkSize;
+            }
         }
 
         public override string Name
@@ -60,7 +99,7 @@ namespace WaveformView.Chunks
         }
 
         [CategoryAttribute( m_chunkName )]
-        [DisplayName( "Contained Chunks" )]
+        [DisplayName( "Chunks" )]
         [TypeConverter(typeof( ChunkCollectionConverter ) )]
         public ChunkCollection ChunkCollections
         {

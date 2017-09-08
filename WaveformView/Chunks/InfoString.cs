@@ -6,7 +6,8 @@ namespace WaveformView.Chunks
     class InfoString : Chunk
     {
         const string m_chunkName = "List-Info Chunk";
-        readonly string m_ID;
+
+        readonly string m_ID = "list";
         readonly string m_value;
 
         public InfoString( string chunkId, string value )

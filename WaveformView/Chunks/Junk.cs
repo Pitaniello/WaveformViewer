@@ -6,10 +6,11 @@ namespace WaveformView.Chunks
     class Junk : Chunk
     {
         const string m_chunkName = "Junk Chunk";
-        readonly string m_ID = "JUNK";
+        const string m_ID = "JUNK";
+
         readonly UInt32 m_size;
 
-        public Junk( UInt32 size )
+        public Junk( UInt32 size, Byte [] data )
         {
             m_size = size;
         }

@@ -7,7 +7,7 @@ namespace WaveformView
     public static class AudioFormats
     {
         
-    // a more complete list can be found in the windows header file mmreg.h
+        // a more complete list can be found in the windows header file mmreg.h
         public enum Format
         {
             [Description("Unkown Microsoft Format")]

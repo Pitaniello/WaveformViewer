@@ -7,6 +7,8 @@ namespace WaveformView.Chunks
     class Label : Chunk
     {
         const string m_chunkName = "Label";
+        const string m_ID = "labl";
+
         public override string Name
         {
             get { return m_chunkName; }

@@ -1,32 +1,81 @@
 ﻿using System;
-using System.Collections;
+using System.Text;
 using System.ComponentModel;
+using System.Collections;
 using System.Globalization;
 
 namespace WaveformView.Chunks
 {
-    [TypeConverter(typeof( ChunkConverter ) )]
-    public abstract class Chunk
+    [TypeConverter(typeof( CueDataConverter ) )]
+    public class CueData
     {
-        public Chunk()
+        readonly UInt32 m_cuePointID;
+        readonly UInt32 m_playOrderPosition;
+        readonly string m_dataChunkID;
+        readonly UInt32 m_chunkStart;
+        readonly UInt32 m_blockStart;
+        readonly UInt32 m_frameOffset;
+
+        public CueData( Byte [] data )
         {
+            m_cuePointID = BitConverter.ToUInt32( data, 0 );
+            m_playOrderPosition = BitConverter.ToUInt32( data, 4 );
+            m_dataChunkID = Encoding.ASCII.GetString( data, 8, 4 );
+            m_chunkStart = BitConverter.ToUInt32( data, 12 );
+            m_blockStart = BitConverter.ToUInt32( data, 16 );
+            m_frameOffset = BitConverter.ToUInt32( data,+ 20 );
+        }
+        
+        [Browsable(false)]
+        public UInt32 CuePointID
+        {
+            get { return m_cuePointID; }
+            set { }
         }
 
-        [Browsable( false )]
-        public abstract string Name
+        [DisplayName( "Play Order Position" )]
+        public UInt32 PlayOrderPosition
         {
-            get;
-            set;
+            get { return m_playOrderPosition; }
+            set { }
+        }
+
+        [DisplayName( "Data Chunk ID" )]
+        public string DataChunkID
+        {
+            get { return m_dataChunkID; }
+            set { }
+        }
+
+        [DisplayName( "Chunk Start" )]
+        public UInt32 ChunkStart
+        {
+            get { return m_chunkStart; }
+            set { }
+        }
+
+        [DisplayName( "Block Start" )]
+        public UInt32 BlockStart
+        {
+            get { return m_blockStart; }
+            set { }
+        }
+
+        [DisplayName( "Frame Offset" )]
+        public UInt32 FrameOffset
+        {
+            get { return m_frameOffset; }
+            set { }
         }
     }
 
-    class ChunkConverter : ExpandableObjectConverter
+    class CueDataConverter : ExpandableObjectConverter
     {
         public override object ConvertTo( ITypeDescriptorContext contect, CultureInfo culture, object value, Type destType )
         {
             object result = null;
 
-            if ( (destType == typeof( string )) && (value is Chunk) )
+            if ( (destType == typeof( string )) && (value is CueData) )
             {
                 result = "";
             }
@@ -41,22 +90,23 @@ namespace WaveformView.Chunks
 
 
 
-    public class ChunkCollection : CollectionBase, ICustomTypeDescriptor
+
+    public class CueDataCollection : CollectionBase, ICustomTypeDescriptor
     {
-        public void Add( Chunk chunk )
+        public void Add( CueData chunk )
         {
             List.Add( chunk );
         }
 
-        public void Remove( Chunk chunk )
+        public void Remove( CueData chunk )
         {
             List.Remove( chunk );
         }
 
-        public Chunk this[int index]
+        public CueData this[int index]
         {
             set { }
-            get { return ( Chunk )( List[index] ); }
+            get { return ( CueData )( List[index] ); }
         }
 
         public String GetClassName()
@@ -120,7 +170,7 @@ namespace WaveformView.Chunks
 
             for ( int chunkIdx = 0; chunkIdx < this.List.Count; chunkIdx++ )
             {
-                ChunkCollectionPropertyDescriptor pdc = new ChunkCollectionPropertyDescriptor( this, chunkIdx );
+                CueDataCollectionPropertyDescriptor pdc = new CueDataCollectionPropertyDescriptor( this, chunkIdx );
                 pds.Add( pdc );
             }
 
@@ -128,16 +178,16 @@ namespace WaveformView.Chunks
         }
     }
 
-    public class ChunkCollectionPropertyDescriptor : PropertyDescriptor
+    public class CueDataCollectionPropertyDescriptor : PropertyDescriptor
     {
-        ChunkCollection m_collection;
+        CueDataCollection m_collection;
 
         int m_index = -1;
 
-        public ChunkCollectionPropertyDescriptor( ChunkCollection cs, int chunkIdx ) : 
+        public CueDataCollectionPropertyDescriptor( CueDataCollection cds, int chunkIdx ) : 
             base ( "#" + chunkIdx, null )
         {
-            m_collection = cs;
+            m_collection = cds;
             m_index = chunkIdx;
         }
 
@@ -158,7 +208,7 @@ namespace WaveformView.Chunks
 
         public override string DisplayName
         {
-            get { return m_collection[m_index].Name; }
+            get { return m_collection[m_index].CuePointID.ToString(); }
         }
 
         public override object GetValue( object component )
@@ -173,7 +223,7 @@ namespace WaveformView.Chunks
 
         public override string Name
         {
-            get { return m_collection[m_index].Name; }
+            get { return m_collection[m_index].CuePointID.ToString(); }
         }
 
         public override Type PropertyType
@@ -196,13 +246,13 @@ namespace WaveformView.Chunks
         }
     }
 
-    class ChunkCollectionConverter : ExpandableObjectConverter
+    class CueDataCollectionConverter : ExpandableObjectConverter
     {
         public override object ConvertTo( ITypeDescriptorContext contect, CultureInfo culture, object value, Type destType )
         {
             object result = null;
 
-            if ( (destType == typeof( string )) && (value is ChunkCollection) )
+            if ( (destType == typeof( string )) && (value is CueDataCollection) )
             {
                 result = "";
             }
