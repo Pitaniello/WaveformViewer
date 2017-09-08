@@ -66,19 +66,21 @@ namespace WaveformView.Chunks
             set { }
         }
 
-        [CategoryAttribute( m_chunkName )]
-        [DisplayName( "Audio Format" )]
-        public UInt16 AudioFormat
+        [CategoryAttribute(m_chunkName)]
+        [DisplayName("Audio Format")]
+        public string AudioFormat
         {
-            get { return m_format; }
+            get
+            {
+                string result = "uknown format: " + m_format;
+                if (Enum.IsDefined(typeof(AudioFormats.Format), m_format))
+                {
+                    result = AudioFormats.GetDescription((AudioFormats.Format)(m_format));
+                }
+                return result;
+            }
             set { }
         }
-        //public string AudioFormat
-        //{
-        //    get { return AudioFormats.GetDescription( m_format ); }
-        //    set { }
-        //}
-
 
         [CategoryAttribute( m_chunkName )]
         [DisplayName( "Channels" )]

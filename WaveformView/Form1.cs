@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
 using WaveformView.Chunks;
-using System.Text;
-using System.ComponentModel;
-using System.Collections;
 
 namespace WaveformView
 {
@@ -28,7 +24,8 @@ namespace WaveformView
             }
             catch ( Exception ex )
             {
-                Console.WriteLine( ex );
+                MessageBox.Show( ex.ToString(), "Error!", MessageBoxButtons.OK );
+                Application.Exit();
             }
         }
 
@@ -47,7 +44,7 @@ namespace WaveformView
                     {
                         Byte [] data = new byte[source.Length];
                         source.Read(data, 0, (int)source.Length);
-                        riffChunk = ChunkFactory.CreateChunk("RIFF", (uint)source.Length, data) as Riff;
+                        riffChunk = ChunkFactory.CreateChunk( "RIFF", ( UInt32 )( source.Length ), data ) as Riff;
                     }
 
                     if ( riffChunk != null )
@@ -58,16 +55,19 @@ namespace WaveformView
                         panel1.Controls.Add(disp);
                     }
                 }
+                else
+                {
+                    string ext = Path.GetExtension( files[0] );
+                    MessageBox.Show( "Unsupported file format \"" + ext + "\". Currently, only \".wav\" is supported.",
+                        "Warning!",
+                        MessageBoxButtons.OK );
+                }
             }
             catch ( Exception ex )
             {
-                Console.WriteLine( ex );
+                MessageBox.Show( ex.ToString(), "Error!", MessageBoxButtons.OK );
+                Application.Exit();
             }
-        }
-
-        private void ReadChunks( string in_filename, ref List<Chunk> out_knownChunks )
-        {
-
         }
     }
 }

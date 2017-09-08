@@ -8,10 +8,13 @@ namespace WaveformView
     {
         
         // a more complete list can be found in the windows header file mmreg.h
-        public enum Format
+        public enum Format : UInt16
         {
             [Description("Unkown Microsoft Format")]
             WAVE_FORMAT_UNKNOWN                 = 0x0000,
+            
+            [Description("Microsft PCM")]
+            WAVE_FORMAT_PCM                     = 0x0001,
 
             [Description("Microsft ADPCM")]
             WAVE_FORMAT_ADPCM                   = 0x0002,

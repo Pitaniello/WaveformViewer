@@ -24,8 +24,8 @@ namespace WaveformView.Chunks
 
                 Byte[] cueChunk = new Byte[24];
 
-                Array.Copy(data, offset, cueChunk, 0, 24);
-                CueData newData = new CueData(cueChunk);
+                Array.Copy( data, offset, cueChunk, 0, 24 );
+                CueData newData = new CueData( cueChunk );
                 m_cues.Add( newData );
             }
         }

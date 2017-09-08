@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.ComponentModel;
+using System.Windows.Forms;
 
 namespace WaveformView.Chunks
 {
@@ -24,18 +25,20 @@ namespace WaveformView.Chunks
             pos += 4;
             m_format = Encoding.ASCII.GetString( data, pos, 4 );
             pos += 4;
-            
-            // For the time, only supporting "RIFF" organized files.
+
             if ( "RIFF" != m_chunkID )
             {
-                Console.WriteLine( "Unsupported header format \"" + m_chunkID + "\". Quitting." );
-                return;
+                MessageBox.Show( "Unsupported header format \"" + m_chunkID + "\". Quitting.",
+                    "Error!",
+                    MessageBoxButtons.OK );
+                Application.Exit();
             }
 
             if ( "WAVE" != m_format )
             {
-                Console.WriteLine( "Unsupported data format \"" + m_format + "\". Quitting." );
-                return;
+                MessageBox.Show( "Unsupported data format \"" + m_format + "\". Quitting.", 
+                    "Error!", MessageBoxButtons.OK );
+                Application.Exit();
             }
 
             while ( pos < m_chunkSize )
@@ -106,6 +109,5 @@ namespace WaveformView.Chunks
             set { }
             get { return m_chunkCollection; }
         }
-
     }
 }
