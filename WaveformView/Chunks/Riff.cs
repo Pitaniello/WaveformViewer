@@ -31,14 +31,14 @@ namespace WaveformView.Chunks
                 MessageBox.Show( "Unsupported header format \"" + m_chunkID + "\". Quitting.",
                     "Error!",
                     MessageBoxButtons.OK );
-                Application.Exit();
+                Environment.Exit(-1);
             }
 
             if ( "WAVE" != m_format )
             {
                 MessageBox.Show( "Unsupported data format \"" + m_format + "\". Quitting.", 
                     "Error!", MessageBoxButtons.OK );
-                Application.Exit();
+                Environment.Exit(-1);
             }
 
             while ( pos < m_chunkSize )

@@ -38,6 +38,10 @@ namespace WaveformView.Chunks
                     result = new Cue( size, data );
                     break;
 
+                case "bext":
+                    result = new BroadcastExtension( size, data );
+                    break;
+
                 default:
                     Console.WriteLine( "Unkown chunk type " + name + "." );
                     break;
